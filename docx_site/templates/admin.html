@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>👑 Админ-панель</h1>
+
+<div class="tabs">
+    <button class="tab" data-tab="templates-tab">📁 Шаблоны</button>
+    <button class="tab active" data-tab="keys-tab">🔑 API Ключи</button>
+</div>
+
+<!-- Вкладка шаблонов -->
+<div id="templates-tab" class="tab-content">
+    <div class="card">
+        <h3>📁 Управление шаблонами</h3>
+        <a href="{{ url_for('manage_templates') }}" class="btn">
+            ⚙️ Перейти к управлению шаблонами
+        </a>
+        <p style="margin-top: 10px;">Здесь вы можете создавать, удалять и настраивать шаблоны документов.</p>
+    </div>
+</div>
+
+<!-- Вкладка API ключей -->
+<div id="keys-tab" class="tab-content active">
+    <div class="card">
+        <h3>🔐 Создать API ключ</h3>
+        
+        <form method="POST" action="{{ url_for('admin') }}">
+            <input type="hidden" name="action" value="create_key">
+            
+            <div class="form-group">
+                <label>Выберите шаблон:</label>
+                <select name="key_client_name" required>
+                    <option value="">Выберите шаблон...</option>
+                    {% for name, display in get_all_templates() %}
+                    <option value="{{ name }}">{{ display }} ({{ name }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Лимит использований:</label>
+                <input type="number" name="limit_count" value="10" min="1" max="1000" required>
+            </div>
+            
+            <button type="submit" class="btn">🔑 Создать ключ</button>
+        </form>
+    </div>
+    
+    <div class="card">
+        <h3>🗝️ Список ключей</h3>
+        
+        {% if keys %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>API Ключ</th>
+                    <th>Шаблон</th>
+                    <th>Использовано</th>
+                    <th>Статус</th>
+                    <th>Создан</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for key in keys %}
+                <tr>
+                    <td>
+                        <code>{{ key.api_key[:16] }}...</code>
+                        <button onclick="navigator.clipboard.writeText('{{ key.api_key }}')" 
+                                class="copy-btn" title="Скопировать">
+                            📋
+                        </button>
+                    </td>
+                    <td>{{ key.template_name }}</td>
+                    <td>{{ key.used_count }}/{{ key.limit_count }}</td>
+                    <td>
+                        {% if key.status == 'active' %}
+                        <span style="color: green; font-weight: bold;">Активен</span>
+                        {% else %}
+                        <span style="color: red;">Неактивен</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ key.created_at[:10] }}</td>
+                    <td>
+                        {% if key.status == 'active' %}
+                        <form method="POST" action="{{ url_for('admin') }}" style="display: inline;">
+                            <input type="hidden" name="action" value="deactivate_key">
+                            <input type="hidden" name="api_key" value="{{ key.api_key }}">
+                            <button type="submit" class="btn btn-danger" 
+                                    onclick="return confirm('Деактивировать ключ?')">
+                                🚫 Деактивировать
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>Нет созданных ключей</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Переключение вкладок
+document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        const tabId = this.dataset.tab;
+        
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        
+        this.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+    });
+});
+</script>
+{% endblock %}
