@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 0 auto;">
+    <h2>Вход в админку</h2>
+    
+    {% if error %}
+    <div class="alert error">
+        {{ error }}
+    </div>
+    {% endif %}
+    
+    <form method="POST" action="/admin/login">
+        <div class="form-group">
+            <label>Пароль:</label>
+            <input type="password" name="password" required>
+        </div>
+        
+        <button type="submit" class="btn">Войти</button>
+    </form>
+    
+    <div style="margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 5px;">
+        <p><strong>Пароль по умолчанию:</strong> admin123</p>
+        <p><small>Смените в config.py перед продакшеном</small></p>
+    </div>
+</div>
+{% endblock %}
